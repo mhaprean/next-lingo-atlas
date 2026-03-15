@@ -1,43 +1,35 @@
-import { Button } from "@/components/ui/button";
-import UsersTable from "@/components/users-table";
-import { UserPlus } from "lucide-react";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import UserForm from "@/components/forms/user-form";
+import { getTodos, addTodo } from '@/app/actions';
+import { TodoItem } from '@/app/components/TodoItem';
 
 export default async function Home() {
+  const todos = await getTodos();
+
   return (
-    <div className="flex flex-col gap-4 max-w-7xl mx-auto p-4 md:p-24">
-      <h1 className="text-2xl font-bold">Users</h1>
+    <main className="dark:bg-gray-900 mx-auto mt-10 max-w-md rounded-lg bg-white p-6 shadow">
+      <h2 className="mb-6 text-2xl font-bold">My Tasks</h2>
 
-      <div className="flex justify-end">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              Add User <UserPlus className="size-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add User</DialogTitle>
-              <DialogDescription>
-                Add a new user to the database.
-              </DialogDescription>
+      <form action={addTodo} className="mb-6 flex gap-2">
+        <input
+          name="text"
+          type="text"
+          placeholder="Add a new task..."
+          className="flex-1 rounded border p-2"
+          required
+        />
+        <button
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700 rounded px-4 py-2 text-white"
+        >
+          Add
+        </button>
+      </form>
 
-              <UserForm />
-            </DialogHeader>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <UsersTable />
-    </div>
+      <ul>
+        {todos.map((todo) => (
+          <TodoItem key={todo.id} todo={todo} />
+        ))}
+        {todos.length === 0 && <p className="text-gray-500 text-center">No tasks yet.</p>}
+      </ul>
+    </main>
   );
 }
