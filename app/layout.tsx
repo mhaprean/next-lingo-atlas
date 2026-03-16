@@ -39,6 +39,9 @@ export default function RootLayout({
             <Link href="/" className='text-lg font-bold text-gray-800 hover:text-gray-600 transition-colors duration-200 mr-auto'>
               Lingo Atlas admin
             </Link>
+            <Link href="/admin" className='text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors duration-200'>
+              Dashboard
+            </Link>
             <UserButton size="icon" />
           </header>
           {children}
