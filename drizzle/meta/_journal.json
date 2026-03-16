@@ -15,6 +15,13 @@
       "when": 1773608572420,
       "tag": "0001_loving_morlun",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773695672183,
+      "tag": "0002_normal_smiling_tiger",
+      "breakpoints": true
     }
   ]
 }

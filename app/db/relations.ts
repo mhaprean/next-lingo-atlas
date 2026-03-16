@@ -1,5 +1,9 @@
 import { relations } from "drizzle-orm/relations";
-import { organizationInNeonAuth, invitationInNeonAuth, userInNeonAuth, sessionInNeonAuth, accountInNeonAuth, memberInNeonAuth } from "./schema";
+import {
+	organizationInNeonAuth, invitationInNeonAuth, userInNeonAuth,
+	sessionInNeonAuth, accountInNeonAuth, memberInNeonAuth,
+	groups, words, translations,
+} from "./schema";
 
 export const invitationInNeonAuthRelations = relations(invitationInNeonAuth, ({one}) => ({
 	organizationInNeonAuth: one(organizationInNeonAuth, {
@@ -46,5 +50,26 @@ export const memberInNeonAuthRelations = relations(memberInNeonAuth, ({one}) => 
 	userInNeonAuth: one(userInNeonAuth, {
 		fields: [memberInNeonAuth.userId],
 		references: [userInNeonAuth.id]
+	}),
+}));
+
+// --- Word Comparison App relations ---
+
+export const groupsRelations = relations(groups, ({many}) => ({
+	words: many(words),
+}));
+
+export const wordsRelations = relations(words, ({one, many}) => ({
+	group: one(groups, {
+		fields: [words.groupId],
+		references: [groups.id],
+	}),
+	translations: many(translations),
+}));
+
+export const translationsRelations = relations(translations, ({one}) => ({
+	word: one(words, {
+		fields: [translations.wordId],
+		references: [words.id],
 	}),
 }));

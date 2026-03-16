@@ -166,3 +166,76 @@ export const todos = pgTable('todos', {
 });
 
 export type Todo = typeof todos.$inferSelect;
+
+// --- Word Comparison App tables ---
+
+/**
+ * All supported European country codes.
+ * Used as the `countryCode` value in the translations table.
+ */
+export const EUROPEAN_COUNTRY_CODES = [
+	'GB', 'ES', 'RO', 'FR', 'DE', 'IT', 'PT', 'NL', 'PL', 'SE',
+	'NO', 'DK', 'FI', 'CZ', 'SK', 'HU', 'HR', 'BG', 'GR', 'TR',
+	'UA', 'RU', 'RS', 'IE', 'IS', 'AL', 'LT', 'LV', 'EE', 'SI',
+	'BA', 'ME', 'MK', 'BY', 'MD', 'AT', 'BE', 'CH', 'LU', 'GE',
+] as const;
+
+export type EuropeanCountryCode = (typeof EUROPEAN_COUNTRY_CODES)[number];
+
+/**
+ * Groups / categories (e.g. "animals", "colors", "food").
+ */
+export const groups = pgTable('groups', {
+	id: uuid('id').defaultRandom().primaryKey().notNull(),
+	name: text('name').notNull(),
+	slug: text('slug').notNull(),
+	description: text('description'),
+	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	unique('groups_slug_key').on(table.slug),
+]);
+
+export type Group = typeof groups.$inferSelect;
+export type NewGroup = typeof groups.$inferInsert;
+
+/**
+ * Words belonging to a group (e.g. "dog", "bear" inside the "animals" group).
+ * The `name` is the canonical English word used as a label.
+ */
+export const words = pgTable('words', {
+	id: uuid('id').defaultRandom().primaryKey().notNull(),
+	groupId: uuid('group_id')
+		.notNull()
+		.references(() => groups.id, { onDelete: 'cascade' }),
+	name: text('name').notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index('words_group_id_idx').using('btree', table.groupId),
+	unique('words_group_id_name_key').on(table.groupId, table.name),
+]);
+
+export type Word = typeof words.$inferSelect;
+export type NewWord = typeof words.$inferInsert;
+
+/**
+ * Translations – one row per word + country code.
+ * e.g. word "dog" → { countryCode: "ES", translation: "perro" }
+ */
+export const translations = pgTable('translations', {
+	id: uuid('id').defaultRandom().primaryKey().notNull(),
+	wordId: uuid('word_id')
+		.notNull()
+		.references(() => words.id, { onDelete: 'cascade' }),
+	countryCode: text('country_code').notNull(),
+	translation: text('translation').notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index('translations_word_id_idx').using('btree', table.wordId),
+	unique('translations_word_id_country_code_key').on(table.wordId, table.countryCode),
+]);
+
+export type Translation = typeof translations.$inferSelect;
+export type NewTranslation = typeof translations.$inferInsert;
