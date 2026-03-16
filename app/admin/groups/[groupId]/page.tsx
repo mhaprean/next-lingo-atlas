@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getGroupById, getWordsByGroup, deleteWord } from '@/app/admin/actions';
 import { WordFormDialog } from '@/app/admin/components/WordFormDialog';
+import { BulkImportDialog } from '@/app/admin/components/BulkImportDialog';
 import { DeleteConfirmDialog } from '@/app/admin/components/DeleteConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -64,7 +65,10 @@ export default async function WordsPage({ params }: WordsPageProps) {
             {group.description || `Manage words in the "${group.name}" group.`}
           </CardDescription>
           <CardAction>
-            <WordFormDialog groupId={groupId} />
+            <div className="flex gap-2">
+              <BulkImportDialog groupId={groupId} />
+              <WordFormDialog groupId={groupId} />
+            </div>
           </CardAction>
         </CardHeader>
         <CardContent>

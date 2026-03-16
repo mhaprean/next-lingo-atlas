@@ -197,3 +197,70 @@ export async function upsertTranslations(
   revalidatePath(`/admin/groups/${groupId}/words/${wordId}`);
   revalidatePath(`/admin/groups/${groupId}`);
 }
+
+// --------------- Bulk Import ---------------
+
+interface BulkWordEntry {
+  name: string;
+  translations: Record<string, string>;
+}
+
+export async function bulkImportWords(
+  groupId: string,
+  entries: BulkWordEntry[]
+) {
+  await getAuthUser();
+
+  let wordsCreated = 0;
+  let wordsUpdated = 0;
+  let translationsCreated = 0;
+
+  for (const entry of entries) {
+    if (!entry.name?.trim()) continue;
+
+    const wordName = entry.name.trim();
+
+    // Find existing word or create a new one
+    let wordId: string;
+
+    const [existing] = await db
+      .select({ id: words.id })
+      .from(words)
+      .where(and(eq(words.groupId, groupId), eq(words.name, wordName)))
+      .limit(1);
+
+    if (existing) {
+      wordId = existing.id;
+      wordsUpdated++;
+    } else {
+      const [newWord] = await db
+        .insert(words)
+        .values({ groupId, name: wordName })
+        .returning();
+      wordId = newWord.id;
+      wordsCreated++;
+    }
+
+    // Build translation entries
+    const translationEntries = Object.entries(entry.translations || {})
+      .filter(([, value]) => value?.trim())
+      .map(([code, value]) => ({
+        wordId,
+        countryCode: code,
+        translation: value.trim(),
+      }));
+
+    if (translationEntries.length > 0) {
+      // Delete existing translations for this word, then re-insert
+      await db.delete(translations).where(eq(translations.wordId, wordId));
+
+      await db.insert(translations).values(translationEntries);
+      translationsCreated += translationEntries.length;
+    }
+  }
+
+  revalidatePath(`/admin/groups/${groupId}`);
+  revalidatePath('/admin');
+
+  return { wordsCreated, wordsUpdated, translationsCreated };
+}
