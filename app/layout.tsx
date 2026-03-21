@@ -30,7 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} min-h-screen`}
       >
         <ThemeProvider
           attribute="class"
@@ -43,11 +43,11 @@ export default function RootLayout({
             redirectTo="/account/settings"
             emailOTP
           >
-            <header className='flex justify-end items-center px-6 py-4 gap-4 h-16 border-b border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-950/50 backdrop-blur-sm sticky top-0 z-50'>
-              <Link href="/" className='text-xl flex items-center gap-2 font-bold text-gray-900 dark:text-white hover:opacity-80 transition-opacity duration-200 mr-auto'>
+            <header className='flex justify-end items-center px-6 py-4 gap-4 h-16 border-b backdrop-blur-sm sticky top-0 z-50'>
+              <Link href="/" className='text-xl flex items-center gap-2 font-bold hover:opacity-80 transition-opacity duration-200 mr-auto'>
                 <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Lingo</span> Atlas
               </Link>
-              <Link href="/admin" className='text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200'>
+              <Link href="/admin" className='text-sm font-medium transition-colors duration-200'>
                 Dashboard
               </Link>
               <ThemeToggle />

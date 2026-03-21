@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-8 text-center bg-transparent">
       <div className="max-w-3xl space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
+        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight">
           Master new languages with <span className="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">Lingo Atlas</span>
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
