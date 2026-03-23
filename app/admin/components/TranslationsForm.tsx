@@ -97,7 +97,7 @@ export function TranslationsForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
         {EUROPEAN_COUNTRY_CODES.map((code) => (
           <div key={code} className="flex items-center gap-2">
             <Label

@@ -54,6 +54,8 @@ export default async function AdminPage() {
                   <TableHead>Slug</TableHead>
                   <TableHead>Words</TableHead>
                   <TableHead>Created</TableHead>
+                  <TableHead>Created By</TableHead>
+                  <TableHead>Updated By</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -76,6 +78,12 @@ export default async function AdminPage() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {new Date(group.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {group.createdByName || '-'}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {group.updatedByName || '-'}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-1">

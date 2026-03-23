@@ -86,6 +86,8 @@ export default async function WordsPage({ params }: WordsPageProps) {
                   <TableHead>Word</TableHead>
                   <TableHead>Translations</TableHead>
                   <TableHead>Created</TableHead>
+                  <TableHead>Created By</TableHead>
+                  <TableHead>Updated By</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -100,6 +102,12 @@ export default async function WordsPage({ params }: WordsPageProps) {
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {new Date(word.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {word.createdByName || '-'}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {word.updatedByName || '-'}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-1">

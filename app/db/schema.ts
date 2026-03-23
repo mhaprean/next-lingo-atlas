@@ -151,6 +151,8 @@ export const projectConfigInNeonAuth = neonAuth.table("project_config", {
 	emailProvider: jsonb("email_provider"),
 	emailAndPassword: jsonb("email_and_password"),
 	allowLocalhost: boolean("allow_localhost").notNull(),
+	pluginConfigs: jsonb("plugin_configs"),
+	webhookConfig: jsonb("webhook_config"),
 }, (table) => [
 	unique("project_config_endpoint_id_key").on(table.endpointId),
 ]);
@@ -190,6 +192,8 @@ export const groups = pgTable('groups', {
 	name: text('name').notNull(),
 	slug: text('slug').notNull(),
 	description: text('description'),
+	createdBy: uuid('created_by'),
+	updatedBy: uuid('updated_by'),
 	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 }, (table) => [
@@ -209,6 +213,8 @@ export const words = pgTable('words', {
 		.notNull()
 		.references(() => groups.id, { onDelete: 'cascade' }),
 	name: text('name').notNull(),
+	createdBy: uuid('created_by'),
+	updatedBy: uuid('updated_by'),
 	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 }, (table) => [
@@ -230,6 +236,8 @@ export const translations = pgTable('translations', {
 		.references(() => words.id, { onDelete: 'cascade' }),
 	countryCode: text('country_code').notNull(),
 	translation: text('translation').notNull(),
+	createdBy: uuid('created_by'),
+	updatedBy: uuid('updated_by'),
 	createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 }, (table) => [

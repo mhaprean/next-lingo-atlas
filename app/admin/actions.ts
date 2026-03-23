@@ -2,8 +2,8 @@
 
 import { auth } from '@/lib/auth/server';
 import { db } from '@/app/db';
-import { groups, words, translations } from '@/app/db/schema';
-import { eq, desc, and, count, sql } from 'drizzle-orm';
+import { groups, words, translations, userInNeonAuth } from '@/app/db/schema';
+import { eq, desc, and, count, sql, aliasedTable } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -21,19 +21,28 @@ async function getAuthUser() {
 export async function getGroups() {
   await getAuthUser();
 
+  const creatorUser = aliasedTable(userInNeonAuth, 'creator');
+  const updaterUser = aliasedTable(userInNeonAuth, 'updater');
+
   const result = await db
     .select({
       id: groups.id,
       name: groups.name,
       slug: groups.slug,
       description: groups.description,
+      createdBy: groups.createdBy,
+      updatedBy: groups.updatedBy,
       createdAt: groups.createdAt,
       updatedAt: groups.updatedAt,
       wordCount: count(words.id),
+      createdByName: creatorUser.name,
+      updatedByName: updaterUser.name,
     })
     .from(groups)
     .leftJoin(words, eq(groups.id, words.groupId))
-    .groupBy(groups.id)
+    .leftJoin(creatorUser, eq(groups.createdBy, creatorUser.id))
+    .leftJoin(updaterUser, eq(groups.updatedBy, updaterUser.id))
+    .groupBy(groups.id, creatorUser.name, updaterUser.name)
     .orderBy(desc(groups.createdAt));
 
   return result;
@@ -52,19 +61,21 @@ export async function getGroupById(groupId: string) {
 }
 
 export async function createGroup(data: { name: string; slug: string; description?: string }) {
-  await getAuthUser();
+  const user = await getAuthUser();
 
   await db.insert(groups).values({
     name: data.name,
     slug: data.slug,
     description: data.description || null,
+    createdBy: user.id,
+    updatedBy: user.id,
   });
 
   revalidatePath('/admin');
 }
 
 export async function updateGroup(groupId: string, data: { name: string; slug: string; description?: string }) {
-  await getAuthUser();
+  const user = await getAuthUser();
 
   await db
     .update(groups)
@@ -73,6 +84,7 @@ export async function updateGroup(groupId: string, data: { name: string; slug: s
       slug: data.slug,
       description: data.description || null,
       updatedAt: new Date().toISOString(),
+      updatedBy: user.id,
     })
     .where(eq(groups.id, groupId));
 
@@ -92,19 +104,28 @@ export async function deleteGroup(groupId: string) {
 export async function getWordsByGroup(groupId: string) {
   await getAuthUser();
 
+  const creatorUser = aliasedTable(userInNeonAuth, 'creator');
+  const updaterUser = aliasedTable(userInNeonAuth, 'updater');
+
   const result = await db
     .select({
       id: words.id,
       groupId: words.groupId,
       name: words.name,
       createdAt: words.createdAt,
+      createdBy: words.createdBy,
+      updatedBy: words.updatedBy,
       updatedAt: words.updatedAt,
       translationCount: count(translations.id),
+      createdByName: creatorUser.name,
+      updatedByName: updaterUser.name,
     })
     .from(words)
     .leftJoin(translations, eq(words.id, translations.wordId))
+    .leftJoin(creatorUser, eq(words.createdBy, creatorUser.id))
+    .leftJoin(updaterUser, eq(words.updatedBy, updaterUser.id))
     .where(eq(words.groupId, groupId))
-    .groupBy(words.id)
+    .groupBy(words.id, creatorUser.name, updaterUser.name)
     .orderBy(desc(words.createdAt));
 
   return result;
@@ -123,11 +144,13 @@ export async function getWordById(wordId: string) {
 }
 
 export async function createWord(data: { groupId: string; name: string }) {
-  await getAuthUser();
+  const user = await getAuthUser();
 
   const [newWord] = await db.insert(words).values({
     groupId: data.groupId,
     name: data.name,
+    createdBy: user.id,
+    updatedBy: user.id,
   }).returning();
 
   revalidatePath(`/admin/groups/${data.groupId}`);
@@ -135,13 +158,14 @@ export async function createWord(data: { groupId: string; name: string }) {
 }
 
 export async function updateWord(wordId: string, data: { name: string; groupId: string }) {
-  await getAuthUser();
+  const user = await getAuthUser();
 
   await db
     .update(words)
     .set({
       name: data.name,
       updatedAt: new Date().toISOString(),
+      updatedBy: user.id,
     })
     .where(eq(words.id, wordId));
 
@@ -173,7 +197,7 @@ export async function upsertTranslations(
   groupId: string,
   items: { countryCode: string; translation: string }[]
 ) {
-  await getAuthUser();
+  const user = await getAuthUser();
 
   // Filter out empty translations
   const nonEmpty = items.filter((t) => t.translation.trim() !== '');
@@ -187,6 +211,8 @@ export async function upsertTranslations(
         wordId,
         countryCode: t.countryCode,
         translation: t.translation.trim(),
+        createdBy: user.id,
+        updatedBy: user.id,
       }))
     );
   } else {
@@ -209,7 +235,7 @@ export async function bulkImportWords(
   groupId: string,
   entries: BulkWordEntry[]
 ) {
-  await getAuthUser();
+  const user = await getAuthUser();
 
   let wordsCreated = 0;
   let wordsUpdated = 0;
@@ -235,7 +261,7 @@ export async function bulkImportWords(
     } else {
       const [newWord] = await db
         .insert(words)
-        .values({ groupId, name: wordName })
+        .values({ groupId, name: wordName, createdBy: user.id, updatedBy: user.id })
         .returning();
       wordId = newWord.id;
       wordsCreated++;
@@ -248,6 +274,8 @@ export async function bulkImportWords(
         wordId,
         countryCode: code,
         translation: value.trim(),
+        createdBy: user.id,
+        updatedBy: user.id,
       }));
 
     if (translationEntries.length > 0) {
