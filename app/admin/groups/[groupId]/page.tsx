@@ -132,6 +132,7 @@ export default async function WordsPage({ params }: WordsPageProps) {
                             'use server';
                             await deleteWord(word.id, groupId);
                           }}
+                          expectedInput={word.name}
                         />
                       </div>
                     </TableCell>

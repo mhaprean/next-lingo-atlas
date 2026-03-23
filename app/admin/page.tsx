@@ -102,6 +102,7 @@ export default async function AdminPage() {
                             'use server';
                             await deleteGroup(group.id);
                           }}
+                          expectedInput={group.slug}
                         />
                       </div>
                     </TableCell>
