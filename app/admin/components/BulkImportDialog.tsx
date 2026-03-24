@@ -2,14 +2,14 @@
 
 import { useState, useTransition } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
@@ -114,26 +114,33 @@ export function BulkImportDialog({ groupId }: BulkImportDialogProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
         <Button variant="outline">
           <Upload data-icon="inline-start" />
           Bulk Import
         </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Bulk Import Words</DialogTitle>
-          <DialogDescription>
+      </SheetTrigger>
+      <SheetContent className="sm:max-w-2xl">
+        <SheetHeader>
+          <SheetTitle>Bulk Import Words</SheetTitle>
+          <SheetDescription>
             Paste a JSON array of words with their translations. Each entry
             needs a <code className="rounded bg-muted px-1 text-xs">name</code>{' '}
             and optional{' '}
             <code className="rounded bg-muted px-1 text-xs">translations</code>{' '}
             object.
-          </DialogDescription>
-        </DialogHeader>
 
-        <div className="grid gap-3">
+            <br />
+            <pre className="mt-2 rounded bg-muted p-2 text-xs">
+              <span>{'// example json'}</span>
+              <br />
+              {EXAMPLE_JSON}
+            </pre>
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="p-4">
           <Textarea
             placeholder={EXAMPLE_JSON}
             value={jsonText}
@@ -149,7 +156,7 @@ export function BulkImportDialog({ groupId }: BulkImportDialogProps) {
           )}
         </div>
 
-        <DialogFooter>
+        <SheetFooter>
           <Button
             variant="outline"
             type="button"
@@ -164,8 +171,8 @@ export function BulkImportDialog({ groupId }: BulkImportDialogProps) {
           >
             {isPending ? 'Importing…' : 'Import'}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }
