@@ -73,6 +73,10 @@ export default async function TranslationsPage({ params }: TranslationsPageProps
             existingTranslations={existingTranslations.map((t) => ({
               countryCode: t.countryCode,
               translation: t.translation,
+              color: t.color,
+              family: t.family,
+              language: t.language,
+              root: t.root,
             }))}
           />
         </CardContent>

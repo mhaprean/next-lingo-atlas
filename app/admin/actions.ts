@@ -195,7 +195,14 @@ export async function getTranslationsByWord(wordId: string) {
 export async function upsertTranslations(
   wordId: string,
   groupId: string,
-  items: { countryCode: string; translation: string }[]
+  items: {
+    countryCode: string;
+    translation: string;
+    color?: string | null;
+    family?: string | null;
+    language?: string | null;
+    root?: string | null;
+  }[]
 ) {
   const user = await getAuthUser();
 
@@ -211,6 +218,10 @@ export async function upsertTranslations(
         wordId,
         countryCode: t.countryCode,
         translation: t.translation.trim(),
+        color: t.color || null,
+        family: t.family || null,
+        language: t.language || null,
+        root: t.root || null,
         createdBy: user.id,
         updatedBy: user.id,
       }))
@@ -227,8 +238,17 @@ export async function upsertTranslations(
 // --------------- Bulk Import ---------------
 
 interface BulkWordEntry {
-  name: string;
-  translations: Record<string, string>;
+  word: string;
+  groups: {
+    family?: string | null;
+    root?: string | null;
+    color?: string | null;
+    entries: {
+      country: string;
+      language?: string | null;
+      translation: string;
+    }[];
+  }[];
 }
 
 export async function bulkImportWords(
@@ -242,9 +262,9 @@ export async function bulkImportWords(
   let translationsCreated = 0;
 
   for (const entry of entries) {
-    if (!entry.name?.trim()) continue;
+    if (!entry.word?.trim()) continue;
 
-    const wordName = entry.name.trim();
+    const wordName = entry.word.trim();
 
     // Find existing word or create a new one
     let wordId: string;
@@ -261,22 +281,37 @@ export async function bulkImportWords(
     } else {
       const [newWord] = await db
         .insert(words)
-        .values({ groupId, name: wordName, createdBy: user.id, updatedBy: user.id })
+        .values({
+          groupId,
+          name: wordName,
+          createdBy: user.id,
+          updatedBy: user.id,
+        })
         .returning();
       wordId = newWord.id;
       wordsCreated++;
     }
 
-    // Build translation entries
-    const translationEntries = Object.entries(entry.translations || {})
-      .filter(([, value]) => value?.trim())
-      .map(([code, value]) => ({
-        wordId,
-        countryCode: code,
-        translation: value.trim(),
-        createdBy: user.id,
-        updatedBy: user.id,
-      }));
+    // Build translation entries from all groups
+    const translationEntries: (typeof translations.$inferInsert)[] = [];
+
+    for (const group of entry.groups || []) {
+      for (const trans of group.entries || []) {
+        if (!trans.translation?.trim()) continue;
+
+        translationEntries.push({
+          wordId,
+          countryCode: trans.country.trim(),
+          translation: trans.translation.trim(),
+          language: trans.language?.trim() || null,
+          color: group.color?.trim() || null,
+          family: group.family?.trim() || null,
+          root: group.root?.trim() || null,
+          createdBy: user.id,
+          updatedBy: user.id,
+        });
+      }
+    }
 
     if (translationEntries.length > 0) {
       // Delete existing translations for this word, then re-insert

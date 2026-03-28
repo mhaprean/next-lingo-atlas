@@ -18,24 +18,27 @@ import { toast } from 'sonner';
 
 const EXAMPLE_JSON = `[
   {
-    "name": "dog",
-    "translations": {
-      "GB": "dog",
-      "ES": "perro",
-      "RO": "câine",
-      "FR": "chien",
-      "DE": "Hund"
-    }
-  },
-  {
-    "name": "cat",
-    "translations": {
-      "GB": "cat",
-      "ES": "gato",
-      "RO": "pisică",
-      "FR": "chat",
-      "DE": "Katze"
-    }
+    "word": "red",
+    "groups": [
+      {
+        "family": "ro-/ru- cluster",
+        "root": "ro-/ru- pattern",
+        "color": "#e74c3c",
+        "entries": [
+          { "country": "GB", "language": "English", "translation": "red" },
+          { "country": "DE", "language": "German", "translation": "rot" }
+        ]
+      },
+      {
+        "family": "cerv-/crven- cluster",
+        "root": "cerv-/crven- pattern",
+        "color": "#c0392b",
+        "entries": [
+          { "country": "CZ", "language": "Czech", "translation": "cervena" },
+          { "country": "PL", "language": "Polish", "translation": "czerwony" }
+        ]
+      }
+    ]
   }
 ]`;
 
@@ -61,36 +64,43 @@ export function BulkImportDialog({ groupId }: BulkImportDialogProps) {
       return;
     }
 
-    // Normalize: accept either an array directly or { words: [...] }
-    let entries: { name: string; translations: Record<string, string> }[];
+    // Normalize: accept either an array directly, { word, groups } object, or { words: [...] }
+    let entries: any[];
 
     if (Array.isArray(parsed)) {
       entries = parsed;
-    } else if (
-      parsed &&
-      typeof parsed === 'object' &&
-      'words' in parsed &&
-      Array.isArray((parsed as { words: unknown }).words)
-    ) {
-      entries = (parsed as { words: typeof entries }).words;
+    } else if (parsed && typeof parsed === 'object') {
+      if ('word' in parsed && 'groups' in parsed) {
+        // Single word object
+        entries = [parsed];
+      } else if ('words' in parsed && Array.isArray((parsed as { words: any[] }).words)) {
+        // Object with "words" array
+        entries = (parsed as { words: any[] }).words;
+      } else {
+        setError(
+          'Expected a JSON array of words, a single word object, or an object with a "words" array.'
+        );
+        return;
+      }
     } else {
       setError(
-        'Expected a JSON array of words, or an object with a "words" array.'
+        'Expected a JSON array of words, a single word object, or an object with a "words" array.'
       );
       return;
     }
 
-    // Validate entries
+    // Validate entries (basic check)
     const valid = entries.filter(
       (e) =>
         e &&
         typeof e === 'object' &&
-        typeof e.name === 'string' &&
-        e.name.trim() !== ''
+        typeof e.word === 'string' &&
+        e.word.trim() !== '' &&
+        Array.isArray(e.groups)
     );
 
     if (valid.length === 0) {
-      setError('No valid word entries found. Each entry needs at least a "name" field.');
+      setError('No valid entries found. Each entry needs a "word" and a "groups" array.');
       return;
     }
 
@@ -131,14 +141,14 @@ export function BulkImportDialog({ groupId }: BulkImportDialogProps) {
             <code className="rounded bg-muted px-1 text-xs">translations</code>{' '}
             object.
 
-            <br />
-            <pre className="mt-2 rounded bg-muted p-2 text-xs">
-              <span>{'// example json'}</span>
-              <br />
-              {EXAMPLE_JSON}
-            </pre>
           </SheetDescription>
         </SheetHeader>
+
+        <pre className="mt-2 rounded bg-muted p-2 text-xs">
+          <span>{'// example json'}</span>
+          <br />
+          {EXAMPLE_JSON}
+        </pre>
 
         <div className="p-4">
           <Textarea
