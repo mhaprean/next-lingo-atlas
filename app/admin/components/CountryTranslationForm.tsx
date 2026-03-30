@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Spinner } from '@/components/ui/spinner';
+import { toast } from 'sonner';
 
 interface Translation {
   countryCode: string;
@@ -67,9 +68,12 @@ export function CountryTranslationForm({
         throw new Error('Failed to save translation');
       }
 
+      toast.success('Translation saved successfully');
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

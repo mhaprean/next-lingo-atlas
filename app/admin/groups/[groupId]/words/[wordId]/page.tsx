@@ -5,7 +5,7 @@ import {
   getTranslationsByWord,
 } from '@/app/admin/actions';
 import { TranslationsForm } from '@/app/admin/components/TranslationsForm';
-import { TranslationsMapView } from '@/app/admin/components/TranslationsMapView';
+import { TranslationsMapWrapper } from '@/app/admin/components/TranslationsMapWrapper';
 import {
   Card,
   CardHeader,
@@ -89,7 +89,7 @@ export default async function TranslationsPage({ params }: TranslationsPageProps
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <TranslationsMapView
+          <TranslationsMapWrapper
             translations={translations}
             countryColors={countryColors}
             wordId={wordId}
