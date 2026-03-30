@@ -8,6 +8,13 @@
 @custom-variant data-inactive (&[data-state="inactive"]);
 
 :root {
+  --white: #ffffff;
+  --map-water: 200 40% 88%;
+  --map-land: 35 25% 90%;
+  --map-border: 220 15% 70%;
+  --map-hover: 200 65% 45%;
+  --map-selected: 200 65% 38%;
+
   --background: #ffffff;
   --foreground: #171717;
   --color-background: var(--background);
@@ -24,6 +31,13 @@
 }
 
 .dark {
+  --map-water: 220 20% 16%;
+  --map-land: 220 15% 22%;
+  --map-border: 220 10% 35%;
+  --map-hover: 200 55% 40%;
+  --map-selected: 200 60% 50%;
+
+
   --background: #0a0a0a;
   --foreground: #ededed;
 

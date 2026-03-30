@@ -17,14 +17,14 @@ interface UseMapAnimationOptions {
   wordDelay?: number;    // ms pause between words (default 3000)
 }
 
-function getGroups(word: { name: string; groups: TranslationGroup[] }): TranslationGroup[] {
-  return word.groups;
+function getGroups(word: Word | { name: string; groups: TranslationGroup[] }): TranslationGroup[] {
+  return 'groups' in word ? word.groups : [];
 }
 
 export function useMapAnimation({
   words,
-  entryDelay = 250,
-  groupDelay = 5000,
+  entryDelay = 500,
+  groupDelay = 3000,
   wordDelay = 3000,
 }: UseMapAnimationOptions) {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -51,7 +51,7 @@ export function useMapAnimation({
     }
   };
 
-  const showAllForWord = useCallback((word: Word) => {
+  const showAllForWord = useCallback((word: { name: string; groups: TranslationGroup[] }) => {
     const groups = getGroups(word);
     const t: Record<string, string> = {};
     const c: Record<string, string> = {};

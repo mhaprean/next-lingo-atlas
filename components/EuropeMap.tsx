@@ -133,7 +133,6 @@ const EuropeMap = forwardRef<SVGSVGElement, EuropeMapProps>(({
               strokeWidth={0.5}
               className="cursor-pointer"
               style={{
-                transition: "fill 0.4s ease-in-out",
                 opacity: visible ? 1 : 0.6,
               }}
               onClick={() =>
@@ -166,8 +165,7 @@ const EuropeMap = forwardRef<SVGSVGElement, EuropeMapProps>(({
               className="pointer-events-none select-none"
               style={{
                 textShadow:
-                  "0 0 4px hsl(var(--background)), 0 0 8px hsl(var(--background))",
-                animation: "fadeIn 0.3s ease-out",
+                  "0 0 4px #ffffff, 0 0 8px #ffffff",
               }}
             >
               {label}
