@@ -1,18 +1,24 @@
 'use client';
 
 import EuropeMap from "@/components/EuropeMap";
-import Link from "next/link";
-import { useState, useEffect } from "react";
+import AnimationControls from "@/components/AnimationControls";
+import { useState, useEffect, useRef } from "react";
 import { useMapAnimation } from "@/hooks/useMapAnimation";
-import { getAllWordsForMap } from "./actions";
+import { getAllWordsForMap, getAllGroups } from "./actions";
+import { Word, Group, DEFAULT_DELAYS } from "@/types/animation";
 
 export default function Home() {
-  const [words, setWords] = useState<any[]>([]);
+  const [words, setWords] = useState<Word[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedWords, setSelectedWords] = useState<Word[]>([]);
+  const [delays, setDelays] = useState(DEFAULT_DELAYS);
 
   useEffect(() => {
-    getAllWordsForMap().then((data) => {
-      setWords(data);
+    Promise.all([getAllWordsForMap(), getAllGroups()]).then(([wordsData, groupsData]) => {
+      setWords(wordsData);
+      setGroups(groupsData);
+      setSelectedWords(wordsData);
       setLoading(false);
     });
   }, []);
@@ -26,9 +32,33 @@ export default function Home() {
     currentGroupLabel,
     play,
     stop,
-  } = useMapAnimation({ words });
+  } = useMapAnimation({ 
+    words: selectedWords,
+    entryDelay: delays.entryDelay,
+    wordDelay: delays.wordDelay,
+    groupDelay: delays.groupDelay,
+  });
 
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const shouldPlayAfterUpdateRef = useRef(false);
+
+  const handlePlay = (wordsToAnimate: Word[], newDelays: typeof delays) => {
+    setSelectedWords(wordsToAnimate);
+    setDelays(newDelays);
+    shouldPlayAfterUpdateRef.current = true;
+  };
+
+  const handleStop = () => {
+    stop();
+  };
+
+  // Trigger play after state updates are applied
+  useEffect(() => {
+    if (shouldPlayAfterUpdateRef.current && selectedWords.length > 0) {
+      play();
+      shouldPlayAfterUpdateRef.current = false;
+    }
+  }, [selectedWords, delays, play]);
 
   if (loading) {
     return (
@@ -39,67 +69,32 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-8 text-center bg-transparent">
-      <div className="max-w-3xl space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight">
-          Master new languages with{" "}
-          <span className="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
-            Lingo Atlas
-          </span>
-        </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
-          Your personal companion for building vocabulary, tracking progress,
-          and achieving fluency faster than ever. Focus on what matters: the
-          words.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
-          <Link
-            href="/admin"
-            className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all hover:-translate-y-1"
-          >
-            Go to Dashboard
-          </Link>
-          <Link
-            href="/account/settings"
-            className="px-8 py-4 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-semibold rounded-full shadow transition-all border border-gray-200 dark:border-gray-700"
-          >
-            Sign In / Sign Up
-          </Link>
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-transparent">
+      {/* Animation Controls Navbar */}
+      <AnimationControls
+        words={words}
+        groups={groups}
+        isPlaying={isPlaying}
+        currentWordName={currentWordName}
+        currentGroupLabel={currentGroupLabel}
+        onPlay={handlePlay}
+        onStop={handleStop}
+      />
+
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+        <div className="flex-1 overflow-hidden relative min-h-[400px] w-full mt-4">
+          <EuropeMap
+            translations={translations}
+            countryColors={countryColors}
+            fontSize={16}
+            textColor="hsl(var(--foreground))"
+            selectedCountry={selectedCountry}
+            onSelectCountry={setSelectedCountry}
+            visibleCountries={visibleCountries}
+          />
         </div>
       </div>
-
-      <div className="flex-1 overflow-hidden relative min-h-[400px] w-full mt-4">
-        <EuropeMap
-          translations={translations}
-          countryColors={countryColors}
-          fontSize={16}
-          textColor="hsl(var(--foreground))"
-          selectedCountry={selectedCountry}
-          onSelectCountry={setSelectedCountry}
-          visibleCountries={visibleCountries}
-        />
-
-        {/* Animation controls */}
-        <div className="absolute top-4 left-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg p-4 shadow-lg">
-          <div className="text-sm font-medium mb-2">
-            {currentWordName && (
-              <div>Word: <span className="font-bold">{currentWordName}</span></div>
-            )}
-            {currentGroupLabel && (
-              <div>Group: <span className="font-bold">{currentGroupLabel}</span></div>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={isPlaying ? stop : play}
-              className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-            >
-              {isPlaying ? 'Stop' : 'Play Animation'}
-            </button>
-          </div>
-        </div>
-      </div>
-
     </div>
   );
 }
