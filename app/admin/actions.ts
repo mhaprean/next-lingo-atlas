@@ -293,15 +293,17 @@ export async function bulkImportWords(
     }
 
     // Build translation entries from all groups
-    const translationEntries: (typeof translations.$inferInsert)[] = [];
+    const translationEntriesMap = new Map<string, typeof translations.$inferInsert>();
 
     for (const group of entry.groups || []) {
       for (const trans of group.entries || []) {
         if (!trans.translation?.trim()) continue;
 
-        translationEntries.push({
+        const countryCode = trans.country.trim();
+        // Use Map to deduplicate by country code (last one wins)
+        translationEntriesMap.set(countryCode, {
           wordId,
-          countryCode: trans.country.trim(),
+          countryCode,
           translation: trans.translation.trim(),
           language: trans.language?.trim() || null,
           color: group.color?.trim() || null,
@@ -312,6 +314,8 @@ export async function bulkImportWords(
         });
       }
     }
+
+    const translationEntries = Array.from(translationEntriesMap.values());
 
     if (translationEntries.length > 0) {
       // Delete existing translations for this word, then re-insert
