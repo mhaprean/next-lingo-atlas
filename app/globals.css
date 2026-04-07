@@ -9,11 +9,11 @@
 
 :root {
   --white: #ffffff;
-  --map-water: 200 40% 88%;
-  --map-land: 35 25% 90%;
-  --map-border: 220 15% 70%;
-  --map-hover: 200 65% 45%;
-  --map-selected: 200 65% 38%;
+  --map-water: #e6f2ff;       /* very light blue */
+  --map-land: #d9f0d9;        /* soft pale green */
+  --map-border: #a3b8cc;      /* subtle soft blue-gray */
+  --map-hover: #33c7ff;       /* bright cyan */
+  --map-selected: #0099cc;    /* strong saturated blue */
 
   --background: #ffffff;
   --foreground: #171717;
@@ -22,31 +22,31 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Map colors */
+  /* Map colors
   --map-water: 210 40% 96%;
   --map-land: 210 20% 85%;
   --map-selected: 220 70% 50%;
   --map-hover: 210 25% 80%;
-  --map-border: 210 15% 70%;
+  --map-border: 210 15% 70%; */
 }
 
 .dark {
-  --map-water: 220 20% 16%;
-  --map-land: 220 15% 22%;
-  --map-border: 220 10% 35%;
-  --map-hover: 200 55% 40%;
-  --map-selected: 200 60% 50%;
+  --map-water: #204060;       /* dark blue */
+  --map-land: #154015;        /* very dark green */
+  --map-border: #2a3b4d;      /* dark blue-gray */
+  --map-hover: #33ccff;       /* medium bright cyan */
+  --map-selected: #66d9ff;    /* bright cyan with good contrast */
 
 
   --background: #0a0a0a;
   --foreground: #ededed;
 
   /* Map colors for dark mode */
-  --map-water: 210 30% 10%;
+  /* --map-water: #91baff;
   --map-land: 210 15% 20%;
   --map-selected: 220 70% 60%;
   --map-hover: 210 20% 25%;
-  --map-border: 210 10% 30%;
+  --map-border: 210 10% 30%; */
 }
 
 body {

@@ -22,6 +22,7 @@ import {
   ComboboxTrigger,
 } from "@/components/ui/combobox";
 import { Word, Group, Delays, DEFAULT_DELAYS } from "@/types/animation";
+import { MultiSelect } from "./ui/multi-select";
 
 interface AnimationControlsProps {
   words: Word[];
@@ -55,6 +56,13 @@ export default function AnimationControls({
       word.groups.some((group) => group.groupId === selectedGroupId),
     );
   }, [words, selectedGroupId]);
+
+  const wordOptions = useMemo(() => {
+    return filteredWords.map((word) => ({
+      label: word.name,
+      value: word.name,
+    }));
+  }, [filteredWords]);
 
   // Handle group change
   const handleGroupChange = (newGroupId: string) => {
@@ -197,6 +205,19 @@ export default function AnimationControls({
                   </ComboboxList>
                 </ComboboxContent>
               </Combobox>
+            </div>
+
+            <div>
+              <MultiSelect
+                options={wordOptions}
+                onValueChange={setSelectedWords}
+                defaultValue={selectedWords}
+                placeholder="Select words"
+                variant="inverted"
+                animation={2}
+                maxCount={7}
+                className={isPlaying ? "pointer-events-none opacity-50" : ""} // disable when playing
+              />
             </div>
 
             {/* Delay inputs */}

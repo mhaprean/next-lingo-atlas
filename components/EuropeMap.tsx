@@ -117,7 +117,7 @@ const EuropeMap = forwardRef<SVGSVGElement, EuropeMapProps>(({
         viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
         preserveAspectRatio="xMidYMid meet"
         className="max-w-full max-h-full"
-        style={{ background: "hsl(var(--map-water))", aspectRatio: "16/9" }}
+        style={{ background: 'var(--map-water)', aspectRatio: "16/9" }}
       >
         {europeFeatures.map((feat) => {
           const code = getCountryCode(feat);
@@ -129,8 +129,8 @@ const EuropeMap = forwardRef<SVGSVGElement, EuropeMapProps>(({
               key={code}
               d={d}
               fill={getCountryFill(code)}
-              stroke="hsl(var(--map-border))"
-              strokeWidth={0.5}
+              stroke="var(--map-border)"
+              strokeWidth={1}
               className="cursor-pointer"
               style={{
                 opacity: visible ? 1 : 0.6,
