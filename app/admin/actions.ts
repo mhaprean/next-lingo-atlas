@@ -16,6 +16,62 @@ async function getAuthUser() {
   return user;
 }
 
+// --------------- Stats ---------------
+
+export async function getStats() {
+  await getAuthUser();
+
+  const [groupsCount, wordsCount, translationsCount, usersCount] = await Promise.all([
+    db.select({ count: count() }).from(groups),
+    db.select({ count: count() }).from(words),
+    db.select({ count: count() }).from(translations),
+    db.select({ count: count() }).from(userInNeonAuth),
+  ]);
+
+  const latestGroups = await db
+    .select({
+      id: groups.id,
+      name: groups.name,
+      slug: groups.slug,
+      createdAt: groups.createdAt,
+    })
+    .from(groups)
+    .orderBy(desc(groups.createdAt))
+    .limit(5);
+
+  const latestWords = await db
+    .select({
+      id: words.id,
+      name: words.name,
+      groupId: words.groupId,
+      createdAt: words.createdAt,
+    })
+    .from(words)
+    .orderBy(desc(words.createdAt))
+    .limit(5);
+
+  const groupWordCounts = await db
+    .select({
+      groupId: words.groupId,
+      count: count(words.id),
+    })
+    .from(words)
+    .groupBy(words.groupId);
+
+  return {
+    totalGroups: groupsCount[0]?.count ?? 0,
+    totalWords: wordsCount[0]?.count ?? 0,
+    totalTranslations: translationsCount[0]?.count ?? 0,
+    totalUsers: usersCount[0]?.count ?? 0,
+    latestGroups,
+    latestWords,
+    groupWordCounts: groupWordCounts.reduce((acc, row) => {
+      acc[row.groupId] = Number(row.count);
+      return acc;
+    }, {} as Record<string, number>),
+  };
+}
+
 // --------------- Groups ---------------
 
 export async function getGroups() {
@@ -206,11 +262,9 @@ export async function upsertTranslations(
 ) {
   const user = await getAuthUser();
 
-  // Filter out empty translations
   const nonEmpty = items.filter((t) => t.translation.trim() !== '');
 
   if (nonEmpty.length > 0) {
-    // Delete existing translations for this word and re-insert
     await db.delete(translations).where(eq(translations.wordId, wordId));
 
     await db.insert(translations).values(
@@ -227,7 +281,6 @@ export async function upsertTranslations(
       }))
     );
   } else {
-    // If all empty, just clear all translations
     await db.delete(translations).where(eq(translations.wordId, wordId));
   }
 
@@ -266,7 +319,6 @@ export async function bulkImportWords(
 
     const wordName = entry.word.trim();
 
-    // Find existing word or create a new one
     let wordId: string;
 
     const [existing] = await db
@@ -292,7 +344,6 @@ export async function bulkImportWords(
       wordsCreated++;
     }
 
-    // Build translation entries from all groups
     const translationEntriesMap = new Map<string, typeof translations.$inferInsert>();
 
     for (const group of entry.groups || []) {
@@ -300,7 +351,6 @@ export async function bulkImportWords(
         if (!trans.translation?.trim()) continue;
 
         const countryCode = trans.country.trim();
-        // Use Map to deduplicate by country code (last one wins)
         translationEntriesMap.set(countryCode, {
           wordId,
           countryCode,
@@ -318,7 +368,6 @@ export async function bulkImportWords(
     const translationEntries = Array.from(translationEntriesMap.values());
 
     if (translationEntries.length > 0) {
-      // Delete existing translations for this word, then re-insert
       await db.delete(translations).where(eq(translations.wordId, wordId));
 
       await db.insert(translations).values(translationEntries);

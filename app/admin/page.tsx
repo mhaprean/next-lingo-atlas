@@ -1,118 +1,118 @@
-import Link from 'next/link';
-import { getGroups } from '@/app/admin/actions';
-import { GroupFormDialog } from '@/app/admin/components/GroupFormDialog';
-import { DeleteConfirmDialog } from '@/app/admin/components/DeleteConfirmDialog';
-import { deleteGroup } from '@/app/admin/actions';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { getStats } from '@/app/admin/actions';
 import {
   Card,
   CardHeader,
   CardTitle,
-  CardDescription,
   CardContent,
-  CardAction,
 } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Pencil, FolderOpen } from 'lucide-react';
+import { FolderOpen, Globe, Users, BookOpen } from 'lucide-react';
+import Link from 'next/link';
 
-export default async function AdminPage() {
-  const groups = await getGroups();
+export default async function DashboardPage() {
+  const stats = await getStats();
+
+  const statCards = [
+    {
+      title: 'Groups',
+      value: stats.totalGroups,
+      icon: FolderOpen,
+      href: '/admin/groups',
+    },
+    {
+      title: 'Words',
+      value: stats.totalWords,
+      icon: BookOpen,
+      href: '/admin/groups',
+    },
+    {
+      title: 'Translations',
+      value: stats.totalTranslations,
+      icon: Globe,
+      href: '/admin/groups',
+    },
+    {
+      title: 'Users',
+      value: stats.totalUsers,
+      icon: Users,
+      href: '/admin/users',
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Word Groups</CardTitle>
-          <CardDescription>
-            Manage categories of words for the map comparison app.
-          </CardDescription>
-          <CardAction>
-            <GroupFormDialog />
-          </CardAction>
-        </CardHeader>
-        <CardContent>
-          {groups.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <FolderOpen className="mb-3 size-10 text-muted-foreground/50" />
-              <p className="text-sm text-muted-foreground">
-                No groups yet. Create your first category to get started.
-              </p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Slug</TableHead>
-                  <TableHead>Words</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Created By</TableHead>
-                  <TableHead>Updated By</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {groups.map((group) => (
-                  <TableRow key={group.id}>
-                    <TableCell className="font-medium">
-                      <Link
-                        href={`/admin/groups/${group.id}`}
-                        className="text-foreground hover:underline"
-                      >
-                        {group.name}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{group.slug}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{group.wordCount}</Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {new Date(group.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {group.createdByName || '-'}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {group.updatedByName || '-'}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-end gap-1">
-                        <GroupFormDialog
-                          group={group}
-                          trigger={
-                            <Button variant="ghost" size="icon-sm">
-                              <Pencil />
-                            </Button>
-                          }
-                        />
-                        <DeleteConfirmDialog
-                          title="Delete Group"
-                          description={`This will permanently delete "${group.name}" and all its words and translations. This action cannot be undone.`}
-                          onDelete={async () => {
-                            'use server';
-                            await deleteGroup(group.id);
-                          }}
-                          expectedInput={group.slug}
-                        />
-                      </div>
-                    </TableCell>
-                  </TableRow>
+      <div>
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <p className="text-muted-foreground">Overview of your word comparison data</p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {statCards.map((stat) => (
+          <Link key={stat.title} href={stat.href}>
+            <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {stat.title}
+                </CardTitle>
+                <stat.icon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stat.value}</div>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Latest Groups</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {stats.latestGroups.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No groups yet</p>
+            ) : (
+              <ul className="space-y-2">
+                {stats.latestGroups.map((group) => (
+                  <li key={group.id} className="flex items-center justify-between text-sm">
+                    <Link
+                      href={`/admin/groups/${group.id}`}
+                      className="hover:underline"
+                    >
+                      {group.name}
+                    </Link>
+                    <span className="text-muted-foreground text-xs">
+                      {stats.groupWordCounts[group.id] || 0} words
+                    </span>
+                  </li>
                 ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Latest Words</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {stats.latestWords.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No words yet</p>
+            ) : (
+              <ul className="space-y-2">
+                {stats.latestWords.map((word) => (
+                  <li key={word.id} className="flex items-center justify-between text-sm">
+                    <span>{word.name}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {new Date(word.createdAt).toLocaleDateString()}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
