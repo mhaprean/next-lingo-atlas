@@ -184,9 +184,7 @@ export default function AnimationControls({
                 onValueChange={setSelectedWords}
                 value={selectedWords}
                 placeholder="Select words"
-                variant="inverted"
-                animation={2}
-                maxCount={7}
+                simpleDisplay
                 className={isPlaying ? "pointer-events-none opacity-50" : ""}
               />
             </div>

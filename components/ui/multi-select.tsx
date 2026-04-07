@@ -52,6 +52,9 @@ interface MultiSelectProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
    */
   onValueChange: (value: string[]) => void;
 
+  /** The selected values (controlled mode). */
+  value?: string[];
+
   /** The default selected values when the component mounts. */
   defaultValue?: string[];
 
@@ -72,6 +75,12 @@ interface MultiSelectProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
    * Optional, defaults to 3.
    */
   maxCount?: number;
+
+  /**
+   * If true, displays a simple count instead of individual badges.
+   * Optional, defaults to false.
+   */
+  simpleDisplay?: boolean;
 
   /**
    * The modality of the popover. When set to true, interaction with outside elements
@@ -99,18 +108,29 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
       options,
       onValueChange,
       variant,
+      value,
       defaultValue = [],
       placeholder = 'Select options',
       animation = 0,
       maxCount = 3,
+      simpleDisplay = false,
       modalPopover = false,
       className,
       ...props
     },
     ref
   ) => {
-    const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValue);
+    const isControlled = value !== undefined;
+    const [uncontrolledValues, setUncontrolledValues] = React.useState<string[]>(defaultValue);
+    const selectedValues = isControlled ? value : uncontrolledValues;
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+
+    const setSelectedValues = (newValues: string[]) => {
+      if (!isControlled) {
+        setUncontrolledValues(newValues);
+      }
+      onValueChange(newValues);
+    };
 
     const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === 'Enter') {
@@ -170,43 +190,49 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
           >
             {selectedValues.length > 0 ? (
               <div className="flex justify-between items-center w-full">
-                <div className="flex flex-wrap items-center">
-                  {selectedValues.slice(0, maxCount).map((value) => {
-                    const option = options.find((o) => o.value === value);
-                    const IconComponent = option?.icon;
-                    return (
-                      <Badge key={value} className={cn(multiSelectVariants({ variant }))} style={{ animationDuration: `${animation}s` }}>
-                        {IconComponent && <IconComponent className="h-4 w-4 mr-2" />}
-                        {option?.label}
+                {simpleDisplay ? (
+                  <span className="text-sm text-foreground mx-3">
+                    {selectedValues.length} selected
+                  </span>
+                ) : (
+                  <div className="flex flex-wrap items-center">
+                    {selectedValues.slice(0, maxCount).map((value) => {
+                      const option = options.find((o) => o.value === value);
+                      const IconComponent = option?.icon;
+                      return (
+                        <Badge key={value} className={cn(multiSelectVariants({ variant }))} style={{ animationDuration: `${animation}s` }}>
+                          {IconComponent && <IconComponent className="h-4 w-4 mr-2" />}
+                          {option?.label}
+                          <XCircle
+                            className="ml-2 h-4 w-4 cursor-pointer"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              toggleOption(value);
+                            }}
+                          />
+                        </Badge>
+                      );
+                    })}
+                    {selectedValues.length > maxCount && (
+                      <Badge
+                        className={cn(
+                          'bg-transparent text-foreground border-foreground/1 hover:bg-transparent',
+                          multiSelectVariants({ variant })
+                        )}
+                        style={{ animationDuration: `${animation}s` }}
+                      >
+                        {`+ ${selectedValues.length - maxCount} more`}
                         <XCircle
                           className="ml-2 h-4 w-4 cursor-pointer"
                           onClick={(event) => {
                             event.stopPropagation();
-                            toggleOption(value);
+                            clearExtraOptions();
                           }}
                         />
                       </Badge>
-                    );
-                  })}
-                  {selectedValues.length > maxCount && (
-                    <Badge
-                      className={cn(
-                        'bg-transparent text-foreground border-foreground/1 hover:bg-transparent',
-                        multiSelectVariants({ variant })
-                      )}
-                      style={{ animationDuration: `${animation}s` }}
-                    >
-                      {`+ ${selectedValues.length - maxCount} more`}
-                      <XCircle
-                        className="ml-2 h-4 w-4 cursor-pointer"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          clearExtraOptions();
-                        }}
-                      />
-                    </Badge>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <XIcon
                     className="h-4 mx-2 cursor-pointer text-muted-foreground"
