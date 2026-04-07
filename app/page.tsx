@@ -29,7 +29,9 @@ export default function Home() {
     visibleCountries,
     isPlaying,
     currentWordName,
+    currentWordIndex,
     currentGroupLabel,
+    totalWords,
     play,
     stop,
   } = useMapAnimation({ 
@@ -76,6 +78,8 @@ export default function Home() {
         groups={groups}
         isPlaying={isPlaying}
         currentWordName={currentWordName}
+        currentWordIndex={currentWordIndex}
+        totalWords={totalWords}
         currentGroupLabel={currentGroupLabel}
         onPlay={handlePlay}
         onStop={handleStop}

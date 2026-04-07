@@ -12,15 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Play, Square, ChevronDown, ChevronUp } from "lucide-react";
-import {
-  Combobox,
-  ComboboxChips,
-  ComboboxChipsInput,
-  ComboboxContent,
-  ComboboxList,
-  ComboboxItem,
-  ComboboxTrigger,
-} from "@/components/ui/combobox";
 import { Word, Group, Delays, DEFAULT_DELAYS } from "@/types/animation";
 import { MultiSelect } from "./ui/multi-select";
 
@@ -29,6 +20,8 @@ interface AnimationControlsProps {
   groups: Group[];
   isPlaying: boolean;
   currentWordName: string;
+  currentWordIndex: number;
+  totalWords: number;
   currentGroupLabel: string;
   onPlay: (selectedWords: Word[], delays: Delays) => void;
   onStop: () => void;
@@ -39,6 +32,8 @@ export default function AnimationControls({
   groups,
   isPlaying,
   currentWordName,
+  currentWordIndex,
+  totalWords,
   currentGroupLabel,
   onPlay,
   onStop,
@@ -67,7 +62,6 @@ export default function AnimationControls({
   // Handle group change
   const handleGroupChange = (newGroupId: string) => {
     setSelectedGroupId(newGroupId);
-    // Compute new selected words directly to avoid stale closure
     const newFilteredWords =
       newGroupId === "all"
         ? words
@@ -80,8 +74,6 @@ export default function AnimationControls({
           });
     const newSelectedWords = newFilteredWords.map((word) => word.name);
 
-    console.log("!!!!!!!!!!! newSelectedWords ", newSelectedWords);
-    console.log("!!!!!!! words ", words);
     setSelectedWords(newSelectedWords);
   };
 
@@ -115,6 +107,10 @@ export default function AnimationControls({
               <span className="text-sm text-muted-foreground">Playing:</span>
               <span className="font-medium text-primary">
                 {currentWordName}
+              </span>
+              <span className="text-muted-foreground">•</span>
+              <span className="font-medium text-accent-foreground">
+                {currentWordIndex + 1}/{totalWords}
               </span>
               {currentGroupLabel && (
                 <>
@@ -183,40 +179,15 @@ export default function AnimationControls({
               <Label htmlFor="words" className="text-sm font-medium">
                 Words
               </Label>
-              <Combobox
-                multiple
-                value={selectedWords}
-                onValueChange={setSelectedWords}
-              >
-                <ComboboxChips>
-                  <ComboboxChipsInput
-                    placeholder="Select words..."
-                    disabled={isPlaying}
-                  />
-                  <ComboboxTrigger />
-                </ComboboxChips>
-                <ComboboxContent className="bg-popover border-border text-popover-foreground">
-                  <ComboboxList>
-                    {filteredWords.map((word) => (
-                      <ComboboxItem key={word.name} value={word.name}>
-                        {word.name}
-                      </ComboboxItem>
-                    ))}
-                  </ComboboxList>
-                </ComboboxContent>
-              </Combobox>
-            </div>
-
-            <div>
               <MultiSelect
                 options={wordOptions}
                 onValueChange={setSelectedWords}
-                defaultValue={selectedWords}
+                value={selectedWords}
                 placeholder="Select words"
                 variant="inverted"
                 animation={2}
                 maxCount={7}
-                className={isPlaying ? "pointer-events-none opacity-50" : ""} // disable when playing
+                className={isPlaying ? "pointer-events-none opacity-50" : ""}
               />
             </div>
 
