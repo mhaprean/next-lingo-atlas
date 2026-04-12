@@ -288,6 +288,86 @@ export async function upsertTranslations(
   revalidatePath(`/admin/groups/${groupId}`);
 }
 
+// --------------- Users ---------------
+
+export async function getUsers() {
+  await getAuthUser();
+
+  return db
+    .select({
+      id: userInNeonAuth.id,
+      name: userInNeonAuth.name,
+      email: userInNeonAuth.email,
+      emailVerified: userInNeonAuth.emailVerified,
+      image: userInNeonAuth.image,
+      role: userInNeonAuth.role,
+      banned: userInNeonAuth.banned,
+      banReason: userInNeonAuth.banReason,
+      banExpires: userInNeonAuth.banExpires,
+      createdAt: userInNeonAuth.createdAt,
+      updatedAt: userInNeonAuth.updatedAt,
+    })
+    .from(userInNeonAuth)
+    .orderBy(desc(userInNeonAuth.createdAt));
+}
+
+export async function getUserById(userId: string) {
+  await getAuthUser();
+
+  const [user] = await db
+    .select()
+    .from(userInNeonAuth)
+    .where(eq(userInNeonAuth.id, userId))
+    .limit(1);
+
+  return user ?? null;
+}
+
+export async function updateUser(
+  userId: string,
+  data: { name: string; role?: string }
+) {
+  await getAuthUser();
+
+  await db
+    .update(userInNeonAuth)
+    .set({
+      name: data.name,
+      role: data.role ?? null,
+      updatedAt: new Date().toISOString(),
+    })
+    .where(eq(userInNeonAuth.id, userId));
+
+  revalidatePath('/admin/users');
+}
+
+export async function banUser(
+  userId: string,
+  data: { banned: boolean; banReason?: string; banExpires?: string }
+) {
+  await getAuthUser();
+
+  await db
+    .update(userInNeonAuth)
+    .set({
+      banned: data.banned,
+      banReason: data.banReason || null,
+      banExpires: data.banExpires || null,
+      updatedAt: new Date().toISOString(),
+    })
+    .where(eq(userInNeonAuth.id, userId));
+
+  revalidatePath('/admin/users');
+}
+
+export async function deleteUser(userId: string) {
+  await getAuthUser();
+
+  await db.delete(userInNeonAuth).where(eq(userInNeonAuth.id, userId));
+
+  revalidatePath('/admin/users');
+}
+
 // --------------- Bulk Import ---------------
 
 interface BulkWordEntry {
